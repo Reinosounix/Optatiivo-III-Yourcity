@@ -1,0 +1,81 @@
+version: "3.6"
+
+services:
+  app_base:
+    build:
+      context: ./app_base
+      dockerfile: Dockerfile
+    volumes:
+      - "./app_base:/usr/src/app"
+    ports:
+      - 80:5000
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app_base
+
+  users:
+    build:
+      context: ./app_users
+      dockerfile: Dockerfile
+    volumes:
+      - "./app_users:/usr/src/app"
+    ports:
+      - 81:5000
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
+      - APP_CONFIG=project.configs.DevelopmentConfig
+    networks:
+      - app_base
+      - user_dbs
+
+  municipality:
+    build:
+      context: ./app_municipality
+      dockerfile: Dockerfile
+    volumes:
+      - "./app_municipality:/usr/src/app"
+    ports:
+      - 82:5000
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
+      - APP_CONFIG=project.configs.DevelopmentConfig
+    networks:
+      - app_base
+      - municipality_dbs
+
+  db_users:
+    build:
+      context: ./db_users
+      dockerfile: Dockerfile
+    ports:
+      - 5430:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres1
+    networks:
+      - user_dbs
+
+  db_municipality:
+    build:
+      context: ./db_municipality
+      dockerfile: Dockerfile
+    ports:
+      - 5431:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres2
+    networks:
+      - municipality_dbs
+
+networks:
+  app_base:
+    name: base-network
+  user_dbs:
+    name: user-dbs-network
+  municipality_dbs:
+    name: municipality-dbs-network
